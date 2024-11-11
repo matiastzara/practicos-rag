@@ -11,7 +11,7 @@ To get started with the course:
    git clone https://github.com/CarlosCaris/practicos-rag.git
 2. Create a virtual environment
     ```bash
-    python -m vevn .venv
+    python -m venv .venv
 3. Activate the environment
    ```bash
     # On Mac
