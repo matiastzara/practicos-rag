@@ -1,5 +1,6 @@
 #Funcion para crear chunk mediante recursividad de caracteres y aplica limpieza para mejorar los embeddings:
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from typing import List, Dict
 import re
 
 def clean_text(text):
