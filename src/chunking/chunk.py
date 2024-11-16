@@ -29,3 +29,53 @@ def chunk_text(docs, chunk_size=1000, chunk_overlap=200):
         split.page_content = clean_text(split.page_content)
     
     return splits
+
+
+# Función para dividir texto en oraciones
+def split_text_into_sentences(text: str) -> List[Dict[str, str]]:
+    """
+    Divide un texto en oraciones basado en '.', '?', y '!' y devuelve una lista de diccionarios.
+
+    Args:
+        text (str): El texto a dividir.
+
+    Returns:
+        List[Dict[str, str]]: Lista de diccionarios con 'sentence' y 'index'.
+    """
+    single_sentences_list = re.split(r'(?<=[.?!])\s+', text.strip())
+    sentences = [{'sentence': sentence, 'index': i} for i, sentence in enumerate(single_sentences_list)]
+    return sentences
+
+
+# Función para combinar oraciones
+def combine_sentences(sentences: List[Dict[str, str]], buffer_size: int = 1) -> List[Dict[str, str]]:
+    """
+    Combina oraciones de acuerdo al tamaño del buffer definido.
+
+    Args:
+        sentences (List[Dict[str, str]]): Lista de oraciones con índices.
+        buffer_size (int): Número de oraciones antes y después a combinar.
+
+    Returns:
+        List[Dict[str, str]]: Lista con oraciones combinadas.
+    """
+    for i in range(len(sentences)):
+        combined_sentence = ''
+
+        # Añadir oraciones previas
+        for j in range(i - buffer_size, i):
+            if j >= 0:
+                combined_sentence += sentences[j]['sentence'] + ' '
+
+        # Añadir oración actual
+        combined_sentence += sentences[i]['sentence']
+
+        # Añadir oraciones posteriores
+        for j in range(i + 1, i + 1 + buffer_size):
+            if j < len(sentences):
+                combined_sentence += ' ' + sentences[j]['sentence']
+
+        # Guardar la oración combinada en el dict actual
+        sentences[i]['combined_sentence'] = combined_sentence.strip()
+
+    return sentences
