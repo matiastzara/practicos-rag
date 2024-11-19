@@ -34,3 +34,6 @@ question = "What are the mandatory data elements that must be submitted in ACE f
 response = rag_chain.invoke(question)
 print("Respuesta:", response)
 '''
+
+
+
