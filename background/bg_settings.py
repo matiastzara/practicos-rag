@@ -96,3 +96,4 @@ def render_sidebar(upload_folder):
         new_chat_name = f"Chat {len(st.session_state['chats']) + 1}"
         st.session_state["chats"].append(new_chat_name)
         st.session_state["current_chat"] = new_chat_name
+        

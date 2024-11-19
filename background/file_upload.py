@@ -25,3 +25,5 @@ def render_file_uploader(upload_folder):
             st.success(f"Se subieron {len(uploaded_files)} archivo(s) correctamente a '{upload_folder}'.")
         else:
             st.warning("No se seleccionaron archivos para cargar.")
+
+
