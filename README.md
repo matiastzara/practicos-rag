@@ -1,60 +1,65 @@
-# Building an End-to-End Retrieval-Augmented Generation System
+# Construcción de un sistema Retrieval-Augmented Generation (E2E)
 
-Welcome to the **Building an End-to-End Retrieval-Augmented Generation System** repository. This repository is designed to guide you through the process of creating a complete Retrieval-Augmented Generation (RAG) system from scratch, following a structured curriculum.
+Este proyecto está diseñado para responder preguntas sobre la industria alimenticia utilizando documentos oficiales del gobierno de los Estados Unidos (USA). Es un proyecto RAG (Retrieval-Augmented Generation) que combina técnicas avanzadas como procesamiento de texto, embeddings y almacenamiento vectorial para extraer y generar respuestas precisas basadas en los datos proporcionados. Además, se encuentra desarrollado siguiendo una estructura escalable, optimizada para su implementación en entornos de producción.
 
-## Setup Instructions
+## Descripción general:
 
-To get started with the course:
+**Carpetas principales:**
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/CarlosCaris/practicos-rag.git
-2. Create a virtual environment
-    ```bash
+### Carpetas principales:
+
+- **`background/`**: Contiene módulos para la configuración de fondo y herramientas auxiliares.
+  - `bg_settings.py`: Configuración del fondo de la aplicación.
+  - `file_upload.py`: Gestión de carga de archivos.
+
+- **`data/`**: Directorio para almacenar datos relacionados con el proyecto. Se puede usar para entradas o salidas de procesamiento.
+
+- **`otros/`**: Carpeta reservada para contenido adicional o complementario al proyecto.
+
+- **`src/`**: Contiene el código fuente principal.
+  - **`chunking/`**:
+    - `sentence_splitter.py`: Divisor de texto en fragmentos manejables.
+  - **`embedding/`**:
+    - `embedding_calculator.py`: Calculador de embeddings basado en el modelo configurado.
+  - **`loaders/`**:
+    - `pdf_loader.py`: Cargador y procesador de archivos PDF.
+  - **`retrievers/`**:
+    - `rag_retriever.py`: Implementación de un sistema de recuperación para cadenas RAG.
+  - **`vector_store_client/`**:
+    - `qdrant_client.py`: Cliente para interactuar con el almacenamiento vectorial basado en Qdrant.
+    - `vector_store_client.py`: Manejo general de operaciones con almacenamiento de vectores.
+
+
+
+**Archivos principales:**
+-	**`main_appv2.py`**: Archivo principal para ejecutar la aplicación.
+-	**`requirements.txt`**: Lista de dependencias necesarias para ejecutar el proyecto.
+-	**`qdrant_store.pkl`**: Archivo generado para almacenar el estado del cliente Qdrant.
+
+## Instrucciones para ejecución:
+**Instalación**
+1.	Clona este repositorio:
+```bash
+   git clone https://github.com/matiastzara/practicos-rag.git
+```
+2. Crea un entorno virtual en tu computador:
+```bash
     python -m venv .venv
-3. Activate the environment
-   ```bash
+```
+3. Activa el entorno virtual:
+```bash
     # On Mac
     .venv/bin/activate
     # On Windows
     .venv\Scripts\activate
-4. Install requirements
-    ```bash
+```
+4. Instala las dependencias:
+```bash
     pip install -r requirements.txt
-## Table of Contents
-
-- [Building an End-to-End Retrieval-Augmented Generation System](#building-an-end-to-end-retrieval-augmented-generation-system)
-  - [Setup Instructions](#setup-instructions)
-  - [Table of Contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Course Outline](#course-outline)
-    - [Lesson 1: Introduction to Retrieval-Augmented Generation (RAG)](#lesson-1-introduction-to-retrieval-augmented-generation-rag)
-    - [Lesson 2: Document Chunking Strategies](#lesson-2-document-chunking-strategies)
-
-## Introduction
-
-This repository contains the materials and code needed to build a complete Retrieval-Augmented Generation (RAG) system. A RAG system combines the strengths of large language models with an external knowledge base to improve the accuracy and relevance of generated responses. Throughout this course, you'll gain hands-on experience with the various components of a RAG system, from document chunking to deployment in the cloud.
-
-## Course Outline
-
-### Lesson 1: Introduction to Retrieval-Augmented Generation (RAG)
-- **Objective:** Understand the fundamentals of RAG and its applications.
-- **Topics:**
-  - Overview of RAG systems
-  - Challenges in large language models (e.g., hallucinations, outdated information)
-  - Basic components of a RAG system
-- **Practical Task:** Set up your development environment and familiarize yourself with the basic concepts.
-- **Resources:** 
-  - Basics
-  - More concepts
-
-### Lesson 2: Document Chunking Strategies
-- **Objective:** Learn how to effectively segment documents for better retrieval performance.
-- **Topics:**
-  - Chunking techniques: token-level, sentence-level, semantic-level
-  - Balancing context preservation with retrieval precision
-  - Small2Big and sliding window techniques
-- **Practical Task:** Implement chunking strategies on a sample dataset.
-- **Resources:**
-  - The five levels of chunking
-  - A guide to chunking
+```
+**Uso:**
+1.	Ejecuta el código principal utilizando:
+```bash
+streamlit run main_appv2.py
+```
+Se abrirá una interfaz para que puedas interactuar con el modelo. Luego, puedes realizar tus preguntas en la parte inferior.
