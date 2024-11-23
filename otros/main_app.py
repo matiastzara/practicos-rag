@@ -5,9 +5,12 @@ from src.embedding.embedding_calculator import calculate_cosine_distances
 from src.vector_store_client.qdrant_client import create_qdrant_store
 from src.retrievers.rag_retriever import create_rag_chain
 import pickle
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Parámetros
-directory_path = "../practicos-rag/data/usa/"
+directory_path = "../practicos-rag/data/cacao/"
 model_name = "sentence-transformers/paraphrase-MiniLM-L6-v2"
 buffer_size = 2
 threshold = 0.5
@@ -27,13 +30,19 @@ qdrant_store = create_qdrant_store(model_name, chunks)
 with open('qdrant_store.pkl', 'wb') as f:
     pickle.dump(qdrant_store, f)
 
-rag_chain = create_rag_chain("gpt-3.5-turbo", openai_api_key, qdrant_store)
+rag_chain, retriever = create_rag_chain("gpt-3.5-turbo", openai_api_key, qdrant_store)
+
+query = "What are the mandatory data elements that must be submitted in ACE for FDA articles?"
+results = retriever.get_relevant_documents(query)
+# Mostrar los fragmentos recuperados
+for i, result in enumerate(results, 1):
+    print(f"Fragmento {i}: {result.page_content}")
+    print(f"Metadatos: {result.metadata}")
+    print("-" * 50)
 
 '''
 question = "What are the mandatory data elements that must be submitted in ACE for FDA articles?"
 response = rag_chain.invoke(question)
 print("Respuesta:", response)
+print("Retriever:", retriever)
 '''
-
-
-
