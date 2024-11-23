@@ -34,7 +34,6 @@ Este proyecto está diseñado para responder preguntas sobre la industria alimen
 **Archivos principales:**
 -	**`main_appv2.py`**: Archivo principal para ejecutar la aplicación.
 -	**`requirements.txt`**: Lista de dependencias necesarias para ejecutar el proyecto.
--	**`qdrant_store.pkl`**: Archivo generado para almacenar el estado del cliente Qdrant.
 
 ## Instrucciones para ejecución:
 **Instalación**
