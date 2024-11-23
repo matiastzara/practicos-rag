@@ -1,5 +1,5 @@
 .venv
 .env
-data/
+#data/
 cache/
 __pycache__/
