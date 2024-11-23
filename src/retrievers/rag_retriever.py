@@ -27,7 +27,8 @@ def create_rag_chain(model, openai_api_key, qdrant):
         return "\n\n".join(doc.page_content for doc in docs)
 
     # Configurar el retriever desde Qdrant
-    retriever = qdrant.as_retriever()
+    #retriever = qdrant.as_retriever()
+    retriever = qdrant.as_retriever(search_type="similarity", search_kwargs={"k": 5})
 
     # Crear la cadena RAG
     rag_chain = (
@@ -37,4 +38,4 @@ def create_rag_chain(model, openai_api_key, qdrant):
         | StrOutputParser()
     )
     
-    return rag_chain
+    return rag_chain, retriever

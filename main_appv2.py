@@ -26,7 +26,7 @@ if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
 # Inicializar RAG chain
-rag_chain = initialize_data_pipeline(directory_path)
+rag_chain, retriever = initialize_data_pipeline(directory_path)
 
 ##################################################################################
 # Interfaz de usuario: Chat
@@ -34,4 +34,4 @@ st.title("Chatbot RAG: Recuperación aumentada por generación")
 user_input = st.chat_input("Escribe tu pregunta:")
 
 if user_input:
-    handle_user_query(user_input, rag_chain)
+    handle_user_query(user_input, retriever)
