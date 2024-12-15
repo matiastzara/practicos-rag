@@ -1,0 +1,11 @@
+model: gpt-3.5-turbo
+model_name: sentence-transformers/paraphrase-MiniLM-L6-v2
+directory_path: ../practicos-rag/data/usa  
+buffer_size: 2
+threshold: 0.3
+max_previous_chunks: 400
+temperature: 0.7
+num_samples: 2
+file_path: ../practicos-rag/data/usa/CFR-2024-vol8.pdf  
+openai_api_key: ${OPENAI_API_KEY}
+rag: super # super o naive
