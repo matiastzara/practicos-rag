@@ -232,7 +232,7 @@ def evaluate_and_save_results(rag_chain: object, retriever: object, config: dict
 
     df_raga = evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths)
 
-    file_name = f"results_{config['rag']}.csv"
-    df_raga.to_csv(file_name, encoding="utf-8", sep="|")
+    file_name = f"results_{config['rag']}.xlsx"
+    df_raga.to_excel(file_name, index=False, engine="openpyxl")
 
     return df_raga

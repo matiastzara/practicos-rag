@@ -8,4 +8,6 @@ temperature: 0.7
 num_samples: 2
 file_path: /Users/v0a02bg/practicos-rag/data/usa/CFR-2024-vol8.pdf  
 openai_api_key: ${OPENAI_API_KEY}
-rag: super # super o naive
+rag: naive # super or naive
+evaluation: False # True or False
+show_chunks: 3 # número de chunks que se visualizaran en streamlit
