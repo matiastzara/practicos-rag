@@ -109,15 +109,16 @@ def initialize_rag(config: dict) -> object:
         annotated_chunks = assign_metadata_to_chunks_with_context(chunks, config["max_previous_chunks"])
         qdrant_store = create_qdrant_store(model_name, annotated_chunks)
         llm = create_llm(model, temperature, openai_api_key)
-        return create_rag_chain(qdrant_store, llm)
+        rag_chain, retriever  = create_rag_chain(qdrant_store, llm)
+        return rag_chain, retriever, annotated_chunks
 
     elif rag_type == "naive":
         docs = load_pdf(config["file_path"])
         naive_chunks = split_pdf_documents(docs)
         naive_qdrant = create_qdrant_store_naive(model_name, naive_chunks)
         llm = create_llm(model, temperature, openai_api_key)
-        return create_rag_chain(naive_qdrant, llm)
-
+        rag_chain, retriever  = create_rag_chain(naive_qdrant, llm)
+        return rag_chain, retriever,naive_chunks
     else:
         raise ValueError("El valor de 'rag' en la configuración no es válido. Debe ser 'super' o 'naive'.")
 

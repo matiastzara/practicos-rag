@@ -1,3 +1,4 @@
+import pandas as pd
 import os  
 import re  
 import logging  
@@ -129,3 +130,28 @@ def assign_metadata_to_chunks_with_context(chunks: List[str], max_previous_chunk
                 metadata_accumulated["sub_subtitle"] = metadata_subsubtitle
         annotated_chunks.append({"chunk_text": chunks[i], "metadata": metadata_accumulated.copy()})
     return annotated_chunks
+
+def show_chunks_streamlit(chunks, config):
+    """
+    Esta función toma una lista de chunks y un diccionario de configuración.
+    Guarda un número específico de los últimos chunks, nombrado según un parámetro en el config.
+
+    Args:
+    chunks (list): Lista de datos para convertir en DataFrame y guardar.
+    config (dict): Configuración que debe contener las claves 'rag' para nombrar el archivo y 'show_chunks' para determinar el número de chunks a mostrar.
+
+    Returns:
+    str: Nombre del archivo creado.
+    """
+
+    show_chunks = config.get('show_chunks', 3) 
+    if len(chunks) < show_chunks:
+        raise ValueError(f"La lista de chunks debe contener al menos {show_chunks} elementos.")
+
+    df_chunks = pd.DataFrame(chunks[-show_chunks:])
+
+    file_name = f"chunks_{config['rag']}.xlsx"
+
+    df_chunks.to_excel(file_name, index=False, engine="openpyxl")
+
+    return 

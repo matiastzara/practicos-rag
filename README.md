@@ -48,7 +48,7 @@ Este proyecto está diseñado para responder preguntas sobre la industria alimen
 3. Activa el entorno virtual:
 ```bash
     # On Mac
-    .venv/bin/activate
+    source .venv/bin/activate
     # On Windows
     .venv\Scripts\activate
 ```
