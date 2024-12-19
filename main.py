@@ -2,10 +2,7 @@ import os
 import logging
 from src.chunking.chunking import (show_chunks_streamlit)
 from src.retrievers.retrievers import (initialize_rag, load_config)
-from src.evaluation.evaluation import (
-    evaluate_and_save_results
-)
-
+from src.evaluation.evaluation import (evaluate_and_save_results)
 
 def main():
 
