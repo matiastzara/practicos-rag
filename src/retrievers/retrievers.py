@@ -5,7 +5,8 @@ from typing import List, Dict
 from langchain_core.runnables import RunnablePassthrough  
 from langchain_core.output_parsers import StrOutputParser  
 from langchain import hub  
-from langchain.document_loaders import PyPDFLoader 
+
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_qdrant import QdrantVectorStore 
 from langchain_openai import ChatOpenAI 
 import yaml  

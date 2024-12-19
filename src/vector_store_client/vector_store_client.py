@@ -5,7 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import FastEmbedSparse, RetrievalMode, QdrantVectorStore  
 from qdrant_client.http.models import Distance, VectorParams 
 from qdrant_client import QdrantClient 
-
+from sentence_transformers import SentenceTransformer
 
 def create_qdrant_store(model_name: str, chunks: List[Dict[str, str]]) -> QdrantVectorStore:
     """
@@ -56,20 +56,23 @@ def create_qdrant_store_naive(model_name: str, chunks: List[str]) -> QdrantVecto
         QdrantVectorStore: Objeto de almacenamiento Qdrant.
     """
     open_source_embeddings = HuggingFaceEmbeddings(model_name=model_name)
-    client = QdrantClient(path="/tmp/langchain_qdrant")
+    model = SentenceTransformer(model_name)
+    embedding_dimension = model.get_sentence_embedding_dimension()
+    client = QdrantClient(path="/tmp/langchain_qdrant2")
 
     try:
-        client.get_collection("naive_documents")
+        client.get_collection("naive_documents2")
     except ValueError:
         client.create_collection(
-            collection_name="naive_documents",
-            vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+            collection_name="naive_documents2",
+            vectors_config=VectorParams(size=embedding_dimension, 
+                                        distance=Distance.COSINE),
         )
 
     qdrant = QdrantVectorStore(
         client=client,
-        collection_name="naive_documents",
-        embedding=open_source_embeddings
+        collection_name="naive_documents2",
+        embedding=open_source_embeddings,
     )
 
     uuids = [str(uuid4()) for _ in range(len(chunks))]
