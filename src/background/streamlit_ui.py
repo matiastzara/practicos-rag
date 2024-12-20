@@ -197,32 +197,3 @@ def render_file_uploader(upload_folder="../practicos-rag/data"):
             st.sidebar.success(f"Se subieron {len(uploaded_files)} archivo(s) correctamente a '{upload_folder}'.")
         else:
             st.sidebar.warning("No se seleccionaron archivos para cargar.")
-
-
-
-# def render_file_uploader(upload_folder="../practicos-rag/data"):
-#     """Renderiza la bandeja de carga de archivos en la barra lateral y guarda los archivos."""
-#     st.sidebar.image(
-#         "background/miauc.png",
-#         caption="Modelo RAG",
-#         use_container_width=True,
-#     )
-#     st.sidebar.header("Subir documentos")
-#     uploaded_files = st.sidebar.file_uploader(
-#         "Selecciona documentos para cargar:",
-#         type=["pdf", "txt", "docx"],
-#         accept_multiple_files=True,
-#     )
-
-#     if not os.path.exists(upload_folder):
-#         os.makedirs(upload_folder)
-
-#     if st.sidebar.button("Subir documentos"):
-#         if uploaded_files:
-#             for uploaded_file in uploaded_files:
-#                 file_path = os.path.join(upload_folder, uploaded_file.name)
-#                 with open(file_path, "wb") as f:
-#                     f.write(uploaded_file.getbuffer())
-#             st.sidebar.success(f"Se subieron {len(uploaded_files)} archivo(s) correctamente a '{upload_folder}'.")
-#         else:
-#             st.sidebar.warning("No se seleccionaron archivos para cargar.")

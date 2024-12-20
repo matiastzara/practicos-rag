@@ -5,11 +5,6 @@ from tqdm import tqdm
 import random
 import streamlit as st
 
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.spatial.distance import pdist, squareform
-
-from PyPDF2 import PdfReader
-
 from datasets import Dataset
 from typing import List, Dict, Tuple, Optional
 
