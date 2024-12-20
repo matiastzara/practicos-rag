@@ -143,4 +143,4 @@ def load_config(file_path):
             if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
                 env_var = value[2:-1]
                 config[key] = os.getenv(env_var, f"MissingEnvVar: {env_var}")
-        return config
+        return config  

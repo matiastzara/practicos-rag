@@ -7,6 +7,7 @@ from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client import QdrantClient 
 from sentence_transformers import SentenceTransformer
 
+
 def create_qdrant_store(model_name: str, chunks: List[Dict[str, str]]) -> QdrantVectorStore:
     """
     Crea y devuelve un QdrantVectorStore a partir de un modelo de embeddings y una lista de chunks de texto.
@@ -58,20 +59,22 @@ def create_qdrant_store_naive(model_name: str, chunks: List[str]) -> QdrantVecto
     open_source_embeddings = HuggingFaceEmbeddings(model_name=model_name)
     model = SentenceTransformer(model_name)
     embedding_dimension = model.get_sentence_embedding_dimension()
-    client = QdrantClient(path="/tmp/langchain_qdrant2")
+    storage_path =  f"/tmp/langchain_qdrant10"
+    name = "naive_documents10"
+    client = QdrantClient(path=storage_path)
 
     try:
-        client.get_collection("naive_documents2")
+        client.get_collection(name)
     except ValueError:
         client.create_collection(
-            collection_name="naive_documents2",
+            collection_name=name,
             vectors_config=VectorParams(size=embedding_dimension, 
                                         distance=Distance.COSINE),
         )
 
     qdrant = QdrantVectorStore(
         client=client,
-        collection_name="naive_documents2",
+        collection_name=name,
         embedding=open_source_embeddings,
     )
 
