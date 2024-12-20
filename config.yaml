@@ -11,4 +11,4 @@ rag: naive
 show_chunks: 3
 temperature: 0.7
 threshold: 0.3
-use_existing_questions: False
+use_existing_questions: True

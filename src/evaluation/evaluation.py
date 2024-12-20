@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import re
 import logging
 from tqdm import tqdm
 import random
@@ -10,37 +9,16 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import pdist, squareform
 
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
+
 from datasets import Dataset
 from typing import List, Dict, Tuple, Optional
 
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.documents import Document
-
-from langchain import hub
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import ChatPromptTemplate
-from langchain_huggingface import HuggingFaceEmbeddings
-
-from langchain_qdrant import FastEmbedSparse, RetrievalMode
-from langchain_qdrant import QdrantVectorStore
-
-from langchain_openai import ChatOpenAI
-
 from ragas import evaluate
-from ragas.metrics import ( faithfulness, answer_relevancy,  context_recall, context_precision,)
-
-from qdrant_client.http.models import Distance, VectorParams
-from qdrant_client import QdrantClient
-from uuid import uuid4
-import yaml
-
-
-
-from src.retrievers.retrievers import ( create_llm)
+from ragas.metrics import ( faithfulness, answer_relevancy,  context_recall, context_precision )
+from src.retrievers.retrievers import ( create_llm )
 
 
 def generate_factoid_qa_prompt():
@@ -57,7 +35,7 @@ def generate_factoid_qa_prompt():
     1. The *factoid question* must be directly answerable with a specific and concise piece of factual information from the context.
     2. Avoid using phrases like "according to the passage" or "based on the context" in your question.
     3. The question should resemble the style of queries typically entered in a search engine, focusing on clarity and relevance.
-    4. The context provided will have a maximum token limit of 200 to 300 tokens.                                                        
+    4. The context provided will have a maximum token limit of 400 to 500 tokens.                                                        
 
     Please provide your response in the following format:
 
@@ -155,7 +133,7 @@ def extract_questions_and_answers(data: List[object]) -> Tuple[List[str], List[s
     return questions, answers
 
 
-def evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths):
+def evaluate_rag_pipeline(rag_chain: object, retriever: object, questions: List[str], ground_truths: List[List[str]]) -> pd.DataFrame:
     """
     Realiza la inferencia con un pipeline RAG, evalúa los resultados y devuelve un DataFrame con las métricas.
 
@@ -199,13 +177,8 @@ def evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths):
     df = result.to_pandas()
     return df
 
-def evaluate_and_save_results(
-    rag_chain: object,
-    retriever: object,
-    config: dict,
-    use_existing_questions: bool = False,
-    questions_file: str = "data/evaluation_data.xlsx"
-) -> pd.DataFrame:
+def evaluate_and_save_results(rag_chain: object, retriever: object, config: dict, use_existing_questions: bool = True,
+    questions_file: Optional[str] = "data/evaluation_data.xlsx") -> pd.DataFrame:
     """
     Evalúa la tubería RAG con opciones para generar preguntas o usar un archivo existente.
 
@@ -214,7 +187,7 @@ def evaluate_and_save_results(
         retriever (object): Mecanismo de recuperación para buscar información relevante.
         config (dict): Configuración con claves como "file_path", "num_samples", y "rag".
         use_existing_questions (bool): Si es True, usa un archivo de preguntas existentes.
-        questions_file (str): Ruta al archivo Excel que contiene preguntas y respuestas.
+        questions_file (Optional[str]): Ruta al archivo Excel que contiene preguntas y respuestas.
 
     Returns:
         pd.DataFrame: DataFrame con resultados de la evaluación.
@@ -222,47 +195,83 @@ def evaluate_and_save_results(
     Raises:
         ValueError: Si no se puede generar o encontrar el archivo de preguntas cuando es necesario.
     """
-    # Crear la carpeta "data" si no existe
-    if not os.path.exists("data"):
-        os.makedirs("data")
-    
-    if use_existing_questions:
-        if not os.path.exists(questions_file):
-            st.warning(f"Archivo de preguntas '{questions_file}' no encontrado. Generando nuevas preguntas con el LLM.")
-            use_existing_questions = False  # Cambiar a False si el archivo no existe
+    try:
+        # Crear la carpeta "data" si no existe
+        if not os.path.exists("data"):
+            os.makedirs("data")
         
-    if not use_existing_questions:
-        # Generar preguntas usando el modelo
-        loader = PyPDFLoader(config["file_path"])
-        docs = loader.load()
+        # Cargar o generar preguntas
+        if use_existing_questions:
+            if not os.path.exists(questions_file):
+                st.warning(f"Archivo de preguntas '{questions_file}' no encontrado. Generando nuevas preguntas.")
+                use_existing_questions = False
+            else:
+                questions_df = pd.read_excel(questions_file)
+                if questions_df.empty:
+                    raise ValueError(f"El archivo '{questions_file}' está vacío. No se puede continuar.")
+                questions = questions_df["question"].tolist()
+                ground_truths = questions_df["answer"].tolist()
+        else:
+            # Generar preguntas usando el modelo
+            loader = PyPDFLoader(config["file_path"])
+            docs = loader.load()
+            if not docs:
+                raise ValueError("No se pudieron cargar documentos. Verifica el archivo y la configuración.")
 
-        prompt = generate_factoid_qa_prompt()
-        new_questions = process_multiple_docs(docs, prompt, config, config["num_samples"])
-        questions, ground_truths = extract_questions_and_answers(new_questions)
+            prompt = generate_factoid_qa_prompt()
+            new_questions = process_multiple_docs(docs, prompt, config, config.get("num_samples", 15))
 
-        # Crear y guardar el archivo de evaluación
-        questions_df = pd.DataFrame({
-            "question": questions,
-            "answer": ground_truths
-        })
-        questions_df.to_excel(questions_file, index=False, engine="openpyxl")
-        st.success(f"Archivo de evaluación creado: '{questions_file}'.")
-    else:
-        # Cargar preguntas existentes
-        questions_df = pd.read_excel(questions_file)
-        questions = questions_df["question"].tolist()
-        ground_truths = questions_df["answer"].tolist()
+            if not new_questions:
+                raise ValueError("No se generaron preguntas. Verifica los documentos y el pipeline.")
 
-    # Evaluar con las preguntas obtenidas
-    df_raga = evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths)
+            questions, ground_truths = extract_questions_and_answers(new_questions)
+            if not questions or not ground_truths:
+                raise ValueError("La extracción de preguntas y respuestas falló.")
 
-    # Guardar resultados
-    results_file = f"results_{config['rag']}.xlsx"
-    df_raga.to_excel(results_file, index=False, engine="openpyxl")
-    logging.info(f"Resultados guardados en: {results_file}")
-    st.success(f"Resultados de evaluación guardados en: '{results_file}'.")
+            # Crear y guardar el archivo de evaluación
+            questions_df = pd.DataFrame({
+                "question": questions,
+                "answer": ground_truths
+            })
+            questions_df.to_excel(questions_file, index=False, engine="openpyxl")
+            st.success(f"Archivo de evaluación creado: '{questions_file}'.")
 
-    # Cambiar el parámetro de uso de preguntas existentes a False al final del proceso
-    config["use_existing_questions"] = False
+        # Evaluar con las preguntas obtenidas
+        df_raga = evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths)
+        if df_raga.empty:
+            raise ValueError("El DataFrame de resultados está vacío. Verifica el pipeline de evaluación.")
 
-    return df_raga
+        # Guardar resultados
+        results_file = f"results_{config['rag']}.xlsx"
+        df_raga.to_excel(results_file, index=False, engine="openpyxl")
+        logging.info(f"Resultados guardados en: {results_file}")
+        st.success(f"Resultados de evaluación guardados en: '{results_file}'.")
+
+        # Mostrar el promedio de las métricas principales
+        metric_mapping = {
+            "context_precision": "Context Precision",
+            "context_recall": "Context Recall",
+            "faithfulness": "Faithfulness",
+            "answer_relevancy": "Answer Relevancy"
+        }
+        metrics = list(metric_mapping.keys())
+        metric_means = df_raga[metrics].mean() * 100  # Convertir a porcentaje
+        renamed_metrics = metric_means.rename(index=metric_mapping)
+        renamed_metrics_df = renamed_metrics.to_frame(name="Promedio (%)")
+
+        st.markdown("### Promedio de Métricas del Modelo Evaluado")
+        st.dataframe(renamed_metrics_df.style.format("{:.2f}%"))  # Mostrar como porcentaje con 2 decimales
+
+        # Registrar el nombre del modelo evaluado
+        model_name = config.get("rag", "Modelo desconocido")
+        logging.info(f"Modelo evaluado: {model_name}")
+
+        # Cambiar el parámetro para evitar reutilización de preguntas
+        config["use_existing_questions"] = False
+
+        return df_raga
+
+    except Exception as e:
+        logging.error(f"Error durante la evaluación: {e}")
+        st.error(f"Error durante la evaluación: {e}")
+        raise

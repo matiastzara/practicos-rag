@@ -20,21 +20,28 @@ def process_user_query():
         return
 
     rag_chain = st.session_state.get("rag_chain")
+    config = st.session_state.get("config", {})
     if not rag_chain:
         st.error("El modelo RAG no está inicializado.")
         return
 
     # Generar respuesta usando el modelo RAG
     response = rag_chain.invoke(query)
+    model_used = config.get("rag", "Desconocido")  # Determina el modelo (naive o super)
 
     # Actualizar el historial
-    st.session_state["chat_history"].append({"question": query, "response": response})
+    st.session_state["chat_history"].append({
+        "question": query,
+        "response": response,
+        "model": model_used  # Agrega el modelo usado
+    })
 
     # Limpiar el campo de entrada
     st.session_state["query"] = ""
 
     # Renderizar historial actualizado
     render_chat_history_with_scroll()
+
 
 def render_chat_interface():
     """Renderiza solo la barra de entrada de texto para interactuar con el chatbot."""
@@ -134,7 +141,7 @@ def render_chat_interface():
     
 def render_chat_history_with_scroll():
     """
-    Renderiza el historial de chat en un bloque fijo con scroll.
+    Renderiza el historial de chat en un bloque fijo con scroll, mostrando el modelo usado.
     """
     st.markdown(
         """
@@ -161,6 +168,11 @@ def render_chat_history_with_scroll():
         .bot-message {
             color: #17a2b8; /* Color azul para el chatbot */
         }
+        .model-label {
+            font-size: 12px;
+            color: gray;
+            margin-left: 10px;
+        }
         </style>
         <div class="chat-container">
         """,
@@ -168,10 +180,16 @@ def render_chat_history_with_scroll():
     )
 
     for chat in st.session_state.get("chat_history", []):
-        user_message = f"<div class='chat-message user-message'><span>🙂 Usuario:</span> {chat['question']}</div>"
-        bot_message = f"<div class='chat-message bot-message'><span>🤖 Chatbot:</span> {chat['response']}</div>"
+        user_message = (
+            f"<div class='chat-message user-message'><span>🙂 Usuario:</span> {chat['question']}</div>"
+        )
+        bot_message = (
+            f"<div class='chat-message bot-message'><span>🤖 Chatbot:</span> {chat['response']}"
+            f"<span class='model-label'>({chat['model']})</span></div>"
+        )
         st.markdown(user_message + bot_message, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 
