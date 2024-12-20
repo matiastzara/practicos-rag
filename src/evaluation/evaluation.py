@@ -4,6 +4,7 @@ import re
 import logging
 from tqdm import tqdm
 import random
+import streamlit as st
 
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import pdist, squareform
@@ -30,12 +31,7 @@ from langchain_qdrant import QdrantVectorStore
 from langchain_openai import ChatOpenAI
 
 from ragas import evaluate
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_recall,
-    context_precision,
-)
+from ragas.metrics import ( faithfulness, answer_relevancy,  context_recall, context_precision,)
 
 from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client import QdrantClient
@@ -203,35 +199,70 @@ def evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths):
     df = result.to_pandas()
     return df
 
-def evaluate_and_save_results(rag_chain: object, retriever: object, config: dict) -> pd.DataFrame:
+def evaluate_and_save_results(
+    rag_chain: object,
+    retriever: object,
+    config: dict,
+    use_existing_questions: bool = False,
+    questions_file: str = "data/evaluation_data.xlsx"
+) -> pd.DataFrame:
     """
-    Evalúa la tubería RAG (Retrieval-Augmented Generation) y guarda los resultados en un archivo CSV.
+    Evalúa la tubería RAG con opciones para generar preguntas o usar un archivo existente.
 
     Args:
-        rag_chain (object): Cadena RAG inicializada para realizar la generación y recuperación de respuestas.
-        retriever (object): Mecanismo de recuperación utilizado para buscar información relevante.
-        config (dict): Diccionario de configuración que contiene las siguientes claves:
-            - "file_path" (str): Ruta al archivo PDF que se evaluará.
-            - "num_samples" (int): Número de preguntas de muestra que se generarán y evaluarán.
-            - "rag" (str): Tipo de RAG utilizado, se usará para nombrar el archivo CSV de salida.
+        rag_chain (object): Cadena RAG inicializada para generar respuestas.
+        retriever (object): Mecanismo de recuperación para buscar información relevante.
+        config (dict): Configuración con claves como "file_path", "num_samples", y "rag".
+        use_existing_questions (bool): Si es True, usa un archivo de preguntas existentes.
+        questions_file (str): Ruta al archivo Excel que contiene preguntas y respuestas.
 
     Returns:
-        pd.DataFrame: Un DataFrame con los resultados de la evaluación de la tubería RAG, que incluye métricas y comparaciones.
+        pd.DataFrame: DataFrame con resultados de la evaluación.
 
     Raises:
-        ValueError: Si la configuración proporcionada no incluye las claves necesarias.
+        ValueError: Si no se puede generar o encontrar el archivo de preguntas cuando es necesario.
     """
-    loader = PyPDFLoader(config["file_path"])
-    docs = loader.load()
+    # Crear la carpeta "data" si no existe
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    
+    if use_existing_questions:
+        if not os.path.exists(questions_file):
+            st.warning(f"Archivo de preguntas '{questions_file}' no encontrado. Generando nuevas preguntas con el LLM.")
+            use_existing_questions = False  # Cambiar a False si el archivo no existe
+        
+    if not use_existing_questions:
+        # Generar preguntas usando el modelo
+        loader = PyPDFLoader(config["file_path"])
+        docs = loader.load()
 
-    prompt = generate_factoid_qa_prompt()
+        prompt = generate_factoid_qa_prompt()
+        new_questions = process_multiple_docs(docs, prompt, config, config["num_samples"])
+        questions, ground_truths = extract_questions_and_answers(new_questions)
 
-    new_questions = process_multiple_docs(docs, prompt, config, config["num_samples"])
-    questions, ground_truths = extract_questions_and_answers(new_questions)
+        # Crear y guardar el archivo de evaluación
+        questions_df = pd.DataFrame({
+            "question": questions,
+            "answer": ground_truths
+        })
+        questions_df.to_excel(questions_file, index=False, engine="openpyxl")
+        st.success(f"Archivo de evaluación creado: '{questions_file}'.")
+    else:
+        # Cargar preguntas existentes
+        questions_df = pd.read_excel(questions_file)
+        questions = questions_df["question"].tolist()
+        ground_truths = questions_df["answer"].tolist()
 
+    # Evaluar con las preguntas obtenidas
     df_raga = evaluate_rag_pipeline(rag_chain, retriever, questions, ground_truths)
 
-    file_name = f"results_{config['rag']}.xlsx"
-    df_raga.to_excel(file_name, index=False, engine="openpyxl")
+    # Guardar resultados
+    results_file = f"results_{config['rag']}.xlsx"
+    df_raga.to_excel(results_file, index=False, engine="openpyxl")
+    logging.info(f"Resultados guardados en: {results_file}")
+    st.success(f"Resultados de evaluación guardados en: '{results_file}'.")
+
+    # Cambiar el parámetro de uso de preguntas existentes a False al final del proceso
+    config["use_existing_questions"] = False
 
     return df_raga

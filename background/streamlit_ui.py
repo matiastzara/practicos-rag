@@ -9,9 +9,11 @@ def configure_ui():
     """Configura la interfaz inicial de Streamlit, incluyendo el historial de chat."""
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
-
+        
 def process_user_query():
-    """Procesa la consulta del usuario utilizando el modelo RAG y actualiza el historial de chats."""
+    """
+    Procesa la consulta del usuario y actualiza el historial.
+    """
     query = st.session_state.get("query", "").strip()
     if not query:
         st.warning("Por favor, ingresa una pregunta válida.")
@@ -28,12 +30,11 @@ def process_user_query():
     # Actualizar el historial
     st.session_state["chat_history"].append({"question": query, "response": response})
 
-    # Limpiar el campo de entrada manualmente
-    st.session_state["query"] = None
+    # Limpiar el campo de entrada
+    st.session_state["query"] = ""
 
     # Renderizar historial actualizado
-    render_chat_history()
-
+    render_chat_history_with_scroll()
 
 def render_chat_interface():
     """Renderiza solo la barra de entrada de texto para interactuar con el chatbot."""
@@ -43,7 +44,6 @@ def render_chat_interface():
         on_change=process_user_query,
         key="query",
     )
-
 
 def render_model_selector(config_path="config.yaml"):
     """Renderiza un selector de modelo (super o naive) y actualiza el archivo de configuración."""
@@ -113,9 +113,65 @@ def safe_initialize_rag(config):
     )
 
 
-def render_chat_history():
-    """Renderiza el historial de chats en la interfaz con íconos para usuario y chatbot."""
-    st.markdown("### Historial de Chat")
-    for chat in st.session_state["chat_history"]:
-        st.markdown(f"🙂 **Usuario**: {chat['question']}")
-        st.markdown(f"🤖 **Chatbot**: {chat['response']}")
+# def render_chat_history():
+#     """Renderiza el historial de chats en la interfaz con íconos para usuario y chatbot."""
+#     st.markdown("### Historial de Chat")
+#     for chat in st.session_state["chat_history"]:
+#         st.markdown(f"🙂 **Usuario**: {chat['question']}")
+#         st.markdown(f"🤖 **Chatbot**: {chat['response']}")
+
+def render_chat_interface():
+    """
+    Renderiza la interfaz principal del chatbot, excluyendo el historial.
+    """
+    st.text_input(
+        "Haz tu pregunta:",
+        placeholder="Escribe tu consulta aquí...",
+        on_change=process_user_query,
+        key="query",
+    )
+
+    
+def render_chat_history_with_scroll():
+    """
+    Renderiza el historial de chat en un bloque fijo con scroll.
+    """
+    st.markdown(
+        """
+        <style>
+        .chat-container {
+            height: 300px; /* Altura fija para el historial */
+            overflow-y: auto; /* Barra de desplazamiento vertical */
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #2f2f2f; /* Fondo oscuro */
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .chat-message span {
+            font-weight: bold;
+        }
+        .user-message {
+            color: #ffc107; /* Color amarillo para el usuario */
+        }
+        .bot-message {
+            color: #17a2b8; /* Color azul para el chatbot */
+        }
+        </style>
+        <div class="chat-container">
+        """,
+        unsafe_allow_html=True,
+    )
+
+    for chat in st.session_state.get("chat_history", []):
+        user_message = f"<div class='chat-message user-message'><span>🙂 Usuario:</span> {chat['question']}</div>"
+        bot_message = f"<div class='chat-message bot-message'><span>🤖 Chatbot:</span> {chat['response']}</div>"
+        st.markdown(user_message + bot_message, unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
