@@ -116,23 +116,6 @@ def set_background_white():
     """
     st.markdown(css, unsafe_allow_html=True)
 
-
-
-# def render_title_and_background_buttons():
-#     """Renderiza el título de la página y los botones para cambiar el fondo."""
-#     col1, col2, col3 = st.columns([4, 1, 1])  # Distribución de columnas: título y botones
-#     with col1:
-#         st.title("MODELO RAG")
-#     with col2:
-#         if st.button("Fondo Gris", key="gray_button"):
-#             change_background("gray")
-#             apply_background_style()
-#     with col3:
-#         if st.button("Fondo Blanco", key="white_button"):
-#             change_background("white")
-#             apply_background_style()
-            
-
 def render_title_and_background_buttons():
     """Renderiza el título centrado y botones para cambiar el fondo."""
     css = """
